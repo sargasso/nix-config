@@ -7,6 +7,7 @@
 {
   imports =
     [ # Include the results of the hardware scan.
+      <nixos-hardware/dell/xps/13-9360>
       ./hardware-configuration.nix
     ];
 
@@ -24,8 +25,13 @@
     kernelModules = [ "kvm-intel" ];
   };
 
+  hardware.enableRedistributableFirmware = true;
+  hardware.enableAllFirmware = true;
+
   networking.hostName = "mischmasch-laptop"; # Define your hostname.
-  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
+  networking.wireless.iwd.enable = true;
+  networking.networkmanager.wifi.backend = "iwd";
 
   # Set your time zone.
   time.timeZone = "America/Denver";
@@ -34,19 +40,13 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviourm
   networking.useDHCP = false;
-  networking.interfaces.enp42s0.useDHCP = true;
-  networking.interfaces.wlp39s0.useDHCP = true;
+  #networking.interfaces.wlan0.useDHCP = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
   # Allow Unfree and NUR (AUR equivalent)
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.packageOverrides = pkgs: {
-    nur = import (builtins.fetchTarball "https://github.com/nix-community/NUR/archive/master.tar.gz") {
-      inherit pkgs;
-    };
-  };
 
   # Overload Nix pkgmgr default options.
   nix.extraOptions = ''
@@ -94,7 +94,6 @@
     htop
     tmux
     zsh
-    pactl
   ];
 
   environment.pathsToLink = [ "/libexec" ];
@@ -118,12 +117,13 @@
 
   # List services that you want to enable:
   #
+  services.fwupd.enable = true;
+  services.thermald.enable = true;
   services.printing.enable = true;
   services.openssh.enable = true;
   services.dbus.enable = true;
   services.acpid.enable = true;
   services.upower.enable = true;
-  services.tlp.enable = true;
   services.xserver = {
     enable = true;
     layout = "us";
@@ -144,7 +144,7 @@
 	gdm.wayland = true;
     };
   };
-  services.gnome3 = {
+  services.gnome = {
     gnome-keyring.enable = true;
     sushi.enable = true;
     gnome-user-share.enable = true;
@@ -169,6 +169,9 @@
   # Accelerated Video Playback
   nixpkgs.config.packageOverrides = pkgs: {
     vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+    nur = import (builtins.fetchTarball "https://github.com/nix-community/NUR/archive/master.tar.gz") {
+      inherit pkgs;
+    };
   };
   hardware.opengl = {
     enable = true;
@@ -210,6 +213,5 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "21.05"; # Did you read the comment?
-
 }
 
