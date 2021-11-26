@@ -32,7 +32,7 @@ in
       bold_italic:
         family: FiraCode NerdFont
         style: Bold
-      size: 8
+      size: 10
     window:
       dynamic_padding: true
       padding:

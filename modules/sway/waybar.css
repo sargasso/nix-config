@@ -1,0 +1,170 @@
+* {
+  border-radius: 0;
+  border: none;
+  font-family: "Monospace";
+  font-size: 12px;
+  min-height: 0;
+  transition-property: none;
+}
+
+window#waybar {
+  background-color: @base03@;
+  color: @base0@;
+}
+
+#workspaces button {
+  padding: 0 5px;
+  background-color: @base03@;
+  color: inherit;
+  border-bottom: 2px solid transparent;
+}
+
+#workspaces button:hover {
+  background: @base02@;
+  box-shadow: inherit;
+  text-shadow: inherit;
+}
+
+#workspaces button.focused {
+  border-bottom: 2px solid @green@;
+}
+
+#workspaces button.urgent {
+  background-color: @red@;
+}
+
+#mode {
+  background-color: @base02@;
+  font-style: italic;
+}
+
+/* all modules on the right */
+#waybar > box > box:nth-child(3) > widget > label {
+  padding: 0 10px;
+}
+
+#battery.charging {
+  color: @base02@;
+  background-color: @green@;
+}
+
+@keyframes blink {
+  to {
+    background-color: @base3@;
+    color: @base00@;
+  }
+}
+
+#battery.critical:not(.charging),
+#temperature.critical {
+  background-color: @red@;
+  animation-name: blink;
+  animation-duration: 0.5s;
+  /* FIXME use nearest neighbor interpolation if possible */
+  animation-timing-function: cubic-bezier(1, 0, 0, 1);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+#cpu {
+  background-color: @cyan@;
+  color: @base02@
+}
+
+#memory {
+  background-color: @yellow@;
+  color: @base02@
+}
+
+#backlight {
+  background-color: @base3@;
+  color: @base00@;
+}
+
+#network {
+  background-color: @violet@;
+  color: @base02@
+}
+
+#custom-vpn {
+  background-color: @blue@;
+  color: @base02@
+}
+
+#network.disconnected {
+  background-color: @red@;
+}
+
+#pulseaudio {
+  background-color: @base3@;
+  color: @base00@;
+}
+
+#pulseaudio.muted {
+  background-color: @base03@;
+  color: @base0@;
+}
+
+#temperature {
+  background-color: @magenta@;
+  color: @base02@;
+}
+
+#idle_inhibitor.activated {
+  background-color: @base3@;
+  color: @base03@;
+}
+
+#mpd {
+  background-color: @green@;
+  color: @base02@;
+}
+
+#mpd.disconnected {
+  background-color: @red@;
+}
+
+#mpd.stopped {
+  background-color: @orange@;
+}
+
+#mpd.paused {
+  background-color: @yellow@;
+}
+
+#custom-redshift {
+  color: @base02@;
+}
+
+#custom-redshift.active {
+  background-color: @red@;
+}
+
+#custom-redshift.inactive {
+  background-color: @blue@;
+}
+
+#tray {
+  padding: 0 5px;
+}
+
+#custom-notification_inhibitor.active {
+  background-color: @base3@;
+  color: @base03@;
+}
+
+#custom-screencast {
+  background-color: @red@;
+  color: @base03@;
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(1, 0, 0, 1);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+#custom-calendar.active {
+  background-color: @base3@;
+  color: @base00@;
+}
+
