@@ -90,7 +90,7 @@
     dmidecode
     hdparm
     git
-    firefox
+    firefox-wayland
     htop
     tmux
     zsh
@@ -162,6 +162,9 @@
     gnome-user-share.enable = true;
     core-shell.enable = true;
   };
+  # services.openvpn.servers = {
+  #  expressVPN = { config = '' config /root/nixos/openvpn/expressvpn-dallas.ovpn ''; };
+  # };
 
   # Wayland
   programs.sway = {
@@ -262,10 +265,12 @@
     };
     libvirtd = {
       enable = true;
-      qemuOvmf = true;
-      qemuRunAsRoot = false;
       onBoot = "ignore";
       onShutdown = "shutdown";
+      qemu = {
+        ovmf.enable = true;
+        runAsRoot = false;
+      };
     };
   };
 
@@ -281,6 +286,6 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "21.05"; # Did you read the comment?
+  system.stateVersion = "22.05"; # Did you read the comment?
 }
 

@@ -16,6 +16,8 @@ let
     pavucontrol
     ripgrep
     virt-manager
+    docker-buildx
+    buildah
 
     # xutils
     rofi
@@ -23,6 +25,7 @@ let
     # chat
     discord
     element-desktop
+    irssi
 
     # term
     alacritty
@@ -42,10 +45,26 @@ let
     hwloc
     unzip
     wget
+    speedtest-cli
+    nodejs
+    appimage-run
+    feh
+    vlc
+    exif
+    imagemagick
 
     # python
     python38Full
     python38Packages.virtualenv
+
+    # kubernetes
+    kubectl
+    kubernetes-helm
+    stern
+    lens
+
+    # db
+    sqlite
   ];
 
 in
@@ -69,6 +88,7 @@ in
   };
 
   xdg = {
+    enable = true;
     userDirs = {
       enable = true;
       desktop = "\$HOME";
@@ -78,10 +98,11 @@ in
       pictures = "\$HOME/Pictures";
       videos = "\$HOME/Videos";
     };
+    mime.enable = true;
   };
 
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "21.05";
+  home.stateVersion = "22.05";
 }
