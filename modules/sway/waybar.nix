@@ -38,20 +38,20 @@ in
     ];
     modules-right = [
       "tray"
-      "custom/screencast"
-      "custom/redshift"
+      #"mpd"
+      #"custom/screencast"
+      #"custom/redshift"
       "idle_inhibitor"
       "backlight"
-      "mpd"
       "pulseaudio"
       "network"
-      "custom/vpn"
+      #"custom/vpn"
       "memory"
       "cpu"
       "temperature"
       "battery"
       "clock"
-      "custom/calendar"
+      #"custom/calendar"
     ];
 
     "sway/workspaces" = {

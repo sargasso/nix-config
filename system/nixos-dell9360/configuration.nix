@@ -4,6 +4,47 @@
 
 { config, pkgs, lib, callPackage, ... }:
 
+let
+  # bash script to let dbus know about important env variables and
+  # propagate them to relevent services run at the end of sway config
+  # see
+  # https://github.com/emersion/xdg-desktop-portal-wlr/wiki/"It-doesn't-work"-Troubleshooting-Checklist
+  # note: this is pretty much the same as  /etc/sway/config.d/nixos.conf but also restarts  
+  # some user services to make sure they have the correct environment variables
+  #dbus-sway-environment = pkgs.writeTextFile {
+  #  name = "dbus-sway-environment";
+  #  destination = "/bin/dbus-sway-environment";
+  #  executable = true;
+  #
+  #  text = ''
+  #dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+  #systemctl --user stop pipewire pipewire-media-session xdg-desktop-portal xdg-desktop-portal-wlr
+  #systemctl --user start pipewire pipewire-media-session xdg-desktop-portal xdg-desktop-portal-wlr
+  #systemctl --user mask xdg-desktop-portal-gnome
+  #    '';
+  #};
+
+  # currently, there is some friction between sway and gtk:
+  # https://github.com/swaywm/sway/wiki/GTK-3-settings-on-Wayland
+  # the suggested way to set gtk settings is with gsettings
+  # for gsettings to work, we need to tell it where the schemas are
+  # using the XDG_DATA_DIR environment variable
+  # run at the end of sway config
+  #configure-gtk = pkgs.writeTextFile {
+  #    name = "configure-gtk";
+  #    destination = "/bin/configure-gtk";
+  #    executable = true;
+  #    text = let
+  #      schema = pkgs.gsettings-desktop-schemas;
+  #      datadir = "${schema}/share/gsettings-schemas/${schema.name}";
+  #    in ''
+  #      export XDG_DATA_DIRS=${datadir}:$XDG_DATA_DIRS
+  #      gnome_schema=org.gnome.desktop.interface
+  #      gsettings set $gnome_schema gtk-theme 'Dracula'
+  #      '';
+  #};
+
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -27,20 +68,20 @@
 
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
+  hardware.ledger.enable = true;
 
-  networking.hostName = "mischmasch-laptop"; # Define your hostname.
-  networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
-  networking.wireless.iwd.enable = true;
-  networking.networkmanager.wifi.backend = "iwd";
+  networking = {
+    useDHCP = false;
+    hostName = "mischmasch-laptop"; # Define your hostname.
+    networkmanager.wifi.backend = "iwd";
+    wireless = {
+      enable = false;
+      iwd.enable = true; # enable iwd but not wpa_supp
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "America/Denver";
-
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviourm
-  networking.useDHCP = false;
-  #networking.interfaces.wlan0.useDHCP = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -63,7 +104,7 @@
 
   # Enable sound.
   sound.enable = true;
-  hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.enable = false;
   hardware.pulseaudio.package = pkgs.pulseaudioFull;
   hardware.pulseaudio.extraConfig = ''
     load-module module-switch-on-connect
@@ -71,12 +112,15 @@
   hardware.bluetooth.enable = true;
 
   # Trusted Users
-  nix.trustedUsers = [ "root" "zystoli" ];
+  nix.settings.trusted-users = [ "root" "zystoli" ];
+
+  # USB
+  # groups.plugdev = {};
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.zystoli = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" "libvirtd" "kvm" "qemu-libvirtd" "video" ];
+    extraGroups = [ "wheel" "docker" "libvirtd" "kvm" "qemu-libvirtd" "video" "audio" "netdev" "bluetooth" "networkmanager" "adbusers" "plugdev" ];
     shell = pkgs.zsh;
   };
 
@@ -84,28 +128,23 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     coreutils
+    gnumake
+    lm_sensors
     curl
     neovim
     pciutils
+    usbutils
     dmidecode
     hdparm
     git
-    firefox-wayland
     htop
     tmux
     zsh
-    (pkgs.writeTextFile {
-      name = "startsway";
-      destination = "/bin/startsway";
-      executable = true;
-      text = ''
-        #! ${pkgs.bash}/bin/bash
-	## first import environment variables from the login manager
-	systemctl --user import-environment
-	# then start the service
-	exec systemctl --user start sway.service
-        '';
-    })
+    #configure-gtk
+    wayland
+    xdg-utils # for opening default programs when clicking links
+    glib # gsettings
+    gnome3.adwaita-icon-theme  # default gnome cursors
   ];
 
   environment.pathsToLink = [ "/libexec" ];
@@ -117,6 +156,7 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+
   programs.zsh = {
     enable = true;
     shellAliases = {
@@ -126,6 +166,9 @@
     autosuggestions.enable = true;
     promptInit = "";
   };
+
+  # Android ADB and tools
+  programs.adb.enable = true;
 
   # List services that you want to enable:
   #
@@ -150,7 +193,7 @@
    
     displayManager = {
         lightdm.enable = false;
-	defaultSession = "sway";
+	defaultSession = "hyprland";
 	gdm.enable = true;
 	gdm.debug = true;
 	gdm.wayland = true;
@@ -162,23 +205,28 @@
     gnome-user-share.enable = true;
     core-shell.enable = true;
   };
-  # services.openvpn.servers = {
-  #  expressVPN = { config = '' config /root/nixos/openvpn/expressvpn-dallas.ovpn ''; };
-  # };
 
-  # Wayland
-  programs.sway = {
+  services.resolved = {
     enable = true;
-    wrapperFeatures.gtk = true; # so that gtk works properly
-    extraPackages = with pkgs; [
-      swaylock
-      swayidle
-      wl-clipboard
-      mako # notification daemon
-      alacritty # Alacritty is the default terminal in the config
-      dmenu # Dmenu is the default in the config but i recommend wofi since its wayland native
-      kanshi # autorandr
-    ];
+  };
+
+  programs.hyprland.enable = true;
+
+  # Pipewire Audio
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # Xdg Dbus for Wayland
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    # gtk portal needed to make gtk apps happy
+    extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
   };
 
   environment = {
@@ -187,51 +235,6 @@
       #"sway/config".source = ./dotfiles/sway/config;
       #"xdg/waybar/config".source = ./dotfiles/waybar/config;
       #"xdg/waybar/style.css".source = ./dotfiles/waybar/style.css;
-    };
-  };
-
-  systemd.user.targets.sway-session = {
-    description = "Sway compositor session";
-    documentation = [ "man:systemd.special(7)" ];
-    bindsTo = [ "graphical-session.target" ];
-    wants = [ "graphical-session-pre.target" ];
-    after = [ "graphical-session-pre.target" ];
-  };
-
-  systemd.user.services.sway = {
-    description = "Sway - Wayland window manager";
-    documentation = [ "man:sway(5)" ];
-    bindsTo = [ "graphical-session.target" ];
-    wants = [ "graphical-session-pre.target" ];
-    after = [ "graphical-session-pre.target" ];
-    # We explicitly unset PATH here, as we want it to be set by
-    # systemctl --user import-environment in startsway
-    environment.PATH = lib.mkForce null;
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = ''
-        ${pkgs.dbus}/bin/dbus-run-session ${pkgs.sway}/bin/sway --debug
-      '';
-      Restart = "on-failure";
-      RestartSec = 1;
-      TimeoutStopSec = 10;
-    };
-  };
-
-  programs.waybar.enable = true;
-
-  systemd.user.services.kanshi = {
-    description = "Kanshi output autoconfig ";
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
-    serviceConfig = {
-      # kanshi doesn't have an option to specifiy config file yet, so it looks
-      # at .config/kanshi/config
-      ExecStart = ''
-        ${pkgs.kanshi}/bin/kanshi
-      '';
-      RestartSec = 5;
-      Restart = "always";
     };
   };
 
@@ -249,7 +252,7 @@
     enable = true;
     extraPackages = with pkgs; [
       intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+      #vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
       vaapiVdpau
       libvdpau-va-gl
     ];
@@ -274,11 +277,14 @@
     };
   };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  # Firewall
+  networking.nftables = {
+    enable = false;
+  };
+
+  #networking.firewall = {
+  #  allowedTCPPorts = [ 22 ];
+  #};
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -286,6 +292,6 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "23.11"; # Did you read the comment?
 }
 

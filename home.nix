@@ -1,11 +1,27 @@
 { config, lib, pkgs, ... }:
 
 let
-
-  # Normal Packages
+  # Package map used below
   packages = with pkgs; [
+    # fonts
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+    liberation_ttf
+    mplus-outline-fonts.githubRelease
+    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+
+    # wayland
+    wl-clipboard
+    grim
+    dracula-theme
+    mako
+    wdisplays
+    imv
 
     # utilities
+    alacritty
+    firefox-wayland
     bitwarden
     bitwarden-cli
     cachix
@@ -18,13 +34,23 @@ let
     virt-manager
     docker-buildx
     buildah
+    bind
+    yq
+    jq
+    khal
+    signify
 
     # xutils
     rofi
+    redshift
+
+    # Hypr
+    hyprpaper
+    eww-wayland
+    wofi
 
     # chat
     discord
-    element-desktop
     irssi
 
     # term
@@ -33,38 +59,50 @@ let
     ion
     tmux
     tmux-cssh
-    nerdfonts
 
     # misc
     chromium
     neofetch
     arandr
     ipmitool
-    exa
+    eza
     ddccontrol
     hwloc
     unzip
     wget
     speedtest-cli
     nodejs
+    yarn
+    yarn2nix
     appimage-run
     feh
     vlc
     exif
     imagemagick
+    mpd
+    nmap
+    libarchive
+    jmtpfs
+    pkg-config
 
     # python
-    python38Full
-    python38Packages.virtualenv
+    python310Full
+    python310Packages.virtualenv
 
     # kubernetes
     kubectl
     kubernetes-helm
+    krew
+    k9s
     stern
-    lens
+    fluxcd
+    argocd
 
     # db
     sqlite
+
+    # editors
+    vscode
   ];
 
 in
@@ -78,11 +116,16 @@ in
     config = import ./config.nix;
   };
 
+  fonts.fontconfig.enable = true;
+
   home = {
     username = "zystoli";
     homeDirectory = "/home/zystoli";
     sessionVariables = {
       EDITOR = "nvim";
+      MOZ_ENABLE_WAYLAND = 1;
+      NIXOS_OZONE_WL = "1";
+      XDG_CURRENT_DESKTOP = "hyprland"; 
     };
     packages = packages;
   };
@@ -104,5 +147,5 @@ in
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "22.05";
+  home.stateVersion = "23.11";
 }

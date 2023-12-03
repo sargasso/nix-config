@@ -14,23 +14,21 @@ in
   programs.alacritty.enable = true;
 
   xdg.configFile."alacritty/alacritty.yml".text = ''
-    import:
-      - ${config.lib.base16.base16template "alacritty"}
     live_config_reload: true
     cursor:
       style: Underline
     font:
       normal:
-        family: FiraCode NerdFont
+        family: FiraCode NerdFont Mono
         style: Medium
       bold:
-        family: FiraCode NerdFont
+        family: FiraCode NerdFont Mono
         style: Bold
       italic:
-        family: FiraCode NerdFont
+        family: FiraCode NerdFont Mono
         style: Italic
       bold_italic:
-        family: FiraCode NerdFont
+        family: FiraCode NerdFont Mono
         style: Bold
       size: 10
     window:
